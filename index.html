@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ALL TIMES - Music Streaming</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: linear-gradient(135deg, #f5e8ff 0%, #e8ddff 45%, #dcd2ff 100%);
+        --card: rgba(255, 255, 255, 0.7);
+        --text: #37274f;
+        --muted: #6e5f87;
+        --accent: #8d65d8;
+        --accent-2: #b390f3;
+        --line: rgba(141, 101, 216, 0.25);
+        --shadow: 0 12px 35px rgba(104, 74, 162, 0.2);
+      }
+
+      body.dark {
+        --bg: linear-gradient(135deg, #2d2340 0%, #352a4a 50%, #3e315a 100%);
+        --card: rgba(42, 34, 60, 0.78);
+        --text: #f4efff;
+        --muted: #c8bae9;
+        --accent: #c29bff;
+        --accent-2: #8f73cf;
+        --line: rgba(210, 189, 255, 0.2);
+        --shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Inter", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        transition: background 0.5s ease, color 0.3s ease;
+      }
+
+      .app {
+        width: min(1080px, 94vw);
+        margin: 24px auto;
+        padding: 22px;
+        border-radius: 26px;
+        background: var(--card);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--line);
+      }
+
+      .topbar {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-bottom: 18px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .logo {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        color: #fff;
+        font-size: 20px;
+      }
+
+      h1 {
+        margin: 0;
+        letter-spacing: 0.08em;
+        font-size: 1.3rem;
+      }
+
+      .controls {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .search {
+        width: 100%;
+        position: relative;
+        margin-bottom: 16px;
+      }
+
+      .search input {
+        width: 100%;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.5);
+        color: var(--text);
+        border-radius: 14px;
+        font-size: 1rem;
+        padding: 14px 16px;
+        outline: none;
+      }
+
+      .search input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(141, 101, 216, 0.2);
+      }
+
+      button {
+        border: 0;
+        border-radius: 12px;
+        padding: 10px 14px;
+        cursor: pointer;
+        font-weight: 600;
+        color: #fff;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        transition: transform 0.2s ease, opacity 0.2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        opacity: 0.92;
+      }
+
+      button.secondary {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--line);
+      }
+
+      button.active {
+        background: linear-gradient(135deg, #6e48b9, #9c7ce8);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 18px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 14px;
+        background: rgba(255, 255, 255, 0.4);
+      }
+
+      .song-list {
+        max-height: 58vh;
+        overflow: auto;
+        padding-right: 4px;
+      }
+
+      .song-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .song-item:hover {
+        border-color: var(--line);
+        background: rgba(141, 101, 216, 0.1);
+      }
+
+      .song-item.playing {
+        border-color: rgba(141, 101, 216, 0.45);
+        background: rgba(141, 101, 216, 0.16);
+      }
+
+      .song-title {
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .song-main {
+        min-width: 0;
+      }
+
+      .song-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .delete-song-btn {
+        border: 1px solid rgba(255, 107, 129, 0.35);
+        color: #ff4f77;
+        background: rgba(255, 107, 129, 0.1);
+        border-radius: 8px;
+        padding: 6px 9px;
+        font-size: 0.8rem;
+        line-height: 1;
+      }
+
+      .delete-song-btn:hover {
+        background: rgba(255, 107, 129, 0.18);
+        transform: translateY(-1px);
+      }
+
+      .small {
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      .player-head {
+        margin-bottom: 8px;
+      }
+
+      .now {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0;
+      }
+
+      .progress-wrap {
+        margin: 12px 0 10px;
+      }
+
+      .time {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 6px;
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+
+      input[type="range"] {
+        width: 100%;
+        accent-color: var(--accent);
+        cursor: pointer;
+      }
+
+      .transport {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(21, 16, 33, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 14px;
+      }
+
+      .modal.open {
+        display: flex;
+      }
+
+      .modal-card {
+        width: min(500px, 96vw);
+        background: var(--card);
+        color: var(--text);
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+        padding: 18px;
+      }
+
+      .form-group {
+        margin-bottom: 10px;
+      }
+
+      .form-group input {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 0.95rem;
+        background: rgba(255, 255, 255, 0.5);
+        color: var(--text);
+      }
+
+      @media (max-width: 860px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .app {
+          width: 96vw;
+          margin: 12px auto;
+          padding: 14px;
+          border-radius: 20px;
+        }
+
+        .topbar {
+          align-items: stretch;
+        }
+
+        .brand {
+          justify-content: center;
+        }
+
+        .controls {
+          width: 100%;
+          display: flex;
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          gap: 8px;
+          padding-bottom: 4px;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: thin;
+        }
+
+        .controls button {
+          width: auto;
+          flex: 0 0 auto;
+          min-height: 44px;
+          padding: 11px 10px;
+          font-size: 0.9rem;
+        }
+
+        .search input {
+          font-size: 0.95rem;
+          padding: 12px 13px;
+        }
+
+        .song-list {
+          max-height: 44vh;
+        }
+
+        .transport {
+          display: flex;
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          gap: 8px;
+          padding-bottom: 4px;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: thin;
+        }
+
+        .transport button {
+          width: auto;
+          flex: 0 0 auto;
+          min-height: 44px;
+          padding: 10px 10px;
+          font-size: 0.9rem;
+        }
+
+        .now {
+          font-size: 1rem;
+        }
+
+        .modal-card {
+          border-radius: 14px;
+          padding: 14px;
+        }
+      }
+
+      @media (max-width: 420px) {
+        h1 {
+          font-size: 1.05rem;
+          letter-spacing: 0.05em;
+        }
+
+        .logo {
+          width: 38px;
+          height: 38px;
+          font-size: 17px;
+        }
+
+        .app {
+          width: 98vw;
+          margin: 8px auto;
+          padding: 10px;
+          border-radius: 16px;
+        }
+
+        .search {
+          margin-bottom: 12px;
+        }
+
+        .search input {
+          font-size: 0.9rem;
+          padding: 11px 12px;
+          border-radius: 12px;
+        }
+
+        .panel {
+          padding: 10px;
+          border-radius: 14px;
+        }
+
+        .song-list {
+          max-height: 40vh;
+        }
+
+        .song-item {
+          padding: 9px 10px;
+          gap: 8px;
+        }
+
+        .small {
+          font-size: 0.78rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo">🎵</div>
+          <h1>ALL TIMES</h1>
+        </div>
+        <div class="controls">
+          <button id="addSongBtn">➕ Add Songs</button>
+          <button id="queriesBtn" class="secondary">💬 Queries</button>
+          <button id="aboutBtn" class="secondary">ℹ️ About</button>
+          <button id="themeBtn" class="secondary">🌙 Dark</button>
+        </div>
+      </div>
+
+      <div class="search">
+        <input id="searchInput" type="text" placeholder="🔍 Search by first letter (example: a)" />
+      </div>
+
+      <div class="layout">
+        <section class="panel">
+          <div class="small" id="listMeta">Songs</div>
+          <div id="songList" class="song-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="player-head">
+            <p class="small">Now Playing</p>
+            <p class="now" id="nowPlaying">Pick a song 🎧</p>
+          </div>
+          <div class="progress-wrap">
+            <input id="progressBar" type="range" min="0" max="100" value="0" />
+            <div class="time">
+              <span id="currentTime">00:00</span>
+              <span id="duration">00:00</span>
+            </div>
+          </div>
+          <div class="transport">
+            <button id="prevBtn">⏮ Prev</button>
+            <button id="playPauseBtn">▶️ Play</button>
+            <button id="nextBtn">⏭ Next</button>
+            <button id="loopBtn" class="secondary">🔁 Loop All: Off</button>
+          </div>
+          <p class="small">Smooth vibes only 💜</p>
+        </section>
+      </div>
+    </div>
+
+    <div id="addModal" class="modal">
+      <div class="modal-card">
+        <h3>Add New Song 🎶</h3>
+        <div class="form-group">
+          <input id="newSongName" type="text" placeholder="Song name" />
+        </div>
+        <div class="form-group">
+          <input id="newSongUrl" type="url" placeholder="Song URL (mp3 link)" />
+        </div>
+        <div class="transport">
+          <button id="saveSongBtn">Save to Firebase</button>
+          <button id="closeAddModalBtn" class="secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="aboutModal" class="modal">
+      <div class="modal-card">
+        <h3>About ALL TIMES 💜</h3>
+        <p><strong>Created by Varunnan Elangovan</strong></p>
+        <p>
+          🎶 ALL TIMES is your personal vibe space — a place where music lives forever. Smooth,
+          simple, and made with passion 💜. Whether it's your mood or your memory, find your song
+          anytime.
+        </p>
+        <p><strong>How to use the app ✨</strong></p>
+        <p>
+          1) Use the search bar to filter songs by starting letters.<br />
+          2) Tap any song to play it instantly.<br />
+          3) Use Prev, Play/Pause, Next, and Loop All controls for playback.<br />
+          4) Use ➕ Add Songs to upload song name + URL to Firebase.<br />
+          5) Use 🗑 delete on uploaded songs to remove them.
+        </p>
+        <button id="closeAboutBtn" class="secondary">Close</button>
+      </div>
+    </div>
+
+    <div id="queriesModal" class="modal">
+      <div class="modal-card">
+        <h3>Queries / Contact Creator 💬</h3>
+        <p class="small">
+          Want to share feedback, report an issue, or request features? Send your message to the
+          creator.
+        </p>
+        <div class="form-group">
+          <input id="queryName" type="text" placeholder="Your name" />
+        </div>
+        <div class="form-group">
+          <input id="queryMessage" type="text" placeholder="Type your query or feedback" />
+        </div>
+        <div class="transport">
+          <button id="sendQueryBtn">📩 Send Query</button>
+          <button id="closeQueriesBtn" class="secondary">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <audio id="audio"></audio>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-analytics.js";
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+        getDocs,
+        query,
+        orderBy,
+        serverTimestamp,
+        deleteDoc,
+        doc
+      } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyD4eY8mnjch4317v-4mlDVYLlrNjVKcwQk",
+        authDomain: "clone-ff714.firebaseapp.com",
+        projectId: "clone-ff714",
+        storageBucket: "clone-ff714.firebasestorage.app",
+        messagingSenderId: "992990361987",
+        appId: "1:992990361987:web:f14e9c7cf068c3d01a9eb6",
+        measurementId: "G-9HMJW20SF8"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      getAnalytics(app);
+      const db = getFirestore(app);
+
+      const defaultUrls = [
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777921807/Aasa_Pulla_c7wf22.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777921825/Aasa_Kooda_ruxmfw.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777921892/Chalmaar_szq3ni.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777921914/Adi_Alaye_irzdre.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777921936/Adiye-MassTamilan.fm_rxcxhm.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777921977/Anbil-Avan_osy0bi.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922003/Ayyayo-Nenju_onwkhf.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922024/Azhagiye_b126ef.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922049/Boomi-Enna-Suthudhe_b8jrwi.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922076/Kanimaa_kelcv2.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922081/Kanave-Kanave-MassTamilan.fm_vfqedo.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922096/Katchi_Sera_w0fkzq.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922116/Chillanjirukkiye_jnrsx3.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922137/Criminal-Crush-MassTamilan.fm_lvgsi3.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922164/Nenjukulla-Nee_mqy5re.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922185/Daavuya_spgti6.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922206/Door-Number_ly3vos.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922211/Tamilselvi_le3rya.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922230/Ennai_Polave_a0d0l5.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922253/Thalapathy_Kacheri_kwi57s.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922264/Enna-Solla-Pogirai_1_cuddzf.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922265/Unnaale-Unnaale_zlsipi.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922295/Vaada-Vaada_scuue8.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922297/Vaseegara_cil2al.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922320/Golden_Sparrow_gvw6d9.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922322/Yedi_uejtls.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922336/Venmegam-Pennaga_mq0kj9.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922367/Hey-Suzhali_sfq7yf.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922395/Jinguchaa_hycg4v.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922425/June-Pona_tzx2v0.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1777922453/Kanave-Kanave-MassTamilan.fm_k1kgfi.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051071/Kanimaa_ahrjor.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051091/Kannadi_Poove_n3s1np.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051121/Kanimaa_fcyzit.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051123/Kannamma-MassTamilan.org_hksldy.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051141/Marandhu_Poche_h6lft8.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051142/Karuppu_Perazhaga_xihoqw.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051153/Madura-Palapalakkuthu-MassTamilan.org_mx3fhm.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051175/Mazhai-Vara-Pogudhe_rd0mkb.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051192/Katchi_Sera_pspim9.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051207/Kurumugil-MassTamilan.dev_pm6qtn.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051211/Muththa_Mazhai_w38aqc.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051227/Kutty-Pattas-MassTamilan.fm_hwovkt.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051259/Machi-Open-The-Bottle_ot9f2n.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051283/Salambala_1_x9yh9k.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051286/Salambala_h5digy.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051286/Salambala_h5digy.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051292/Pookal_Pookum_xfjygc.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051309/Meesa-Beauty_d7czof.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051311/Tamilselvi_xlnfmp.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051311/Thalapathy_Kacheri_xq2umy.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051326/Monica_jejxnf.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051338/Morattu_Muttal_rpamuv.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051369/Muththa_Mazhai_1_rc7wa5.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051382/Mutta_Kalakki_tjhtmu.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051404/Nenjukulla-Nee_rggnx0.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051428/New_York_Nagaram_zprrku.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051448/Olli-Olli-Iduppe_uavevx.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051563/Oorum_Blood_mgyxs0.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051581/Pakkam_Vanthu_yzxphn.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051614/Pavazha_Malli_sjw7wy.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051632/Senjitaley_dr70zp.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051649/Sirikkadhey_u5ks1i.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778051668/Sirukki-Vaasam_hwrem8.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778052261/Unnaale-Unnaale_gqojze.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778052283/Vaada-Vaada_zlyfup.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778052304/Vaseegara_u0gl6b.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778052324/Yaanji-MassTamilan.com_kahooa.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778052368/Venmathiye_yly07r.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778052421/Venmegam-Pennaga_pyyrad.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778052443/Vinmeen-Vithaiyil_t3gsod.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778052464/Vinmeen-Vithaiyil_boktwz.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778052480/Yedi_knzmrw.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778055745/Venmathiye_o8zubz.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778055766/Venmegam-Pennaga_t9oknj.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778055787/Vinmeen-Vithaiyil_yhfo2a.mp3",
+        "https://res.cloudinary.com/dknu3lerw/video/upload/v1778055803/Yedi_b8sfwx.mp3"
+      ];
+
+      const audio = document.getElementById("audio");
+      const songListEl = document.getElementById("songList");
+      const nowPlayingEl = document.getElementById("nowPlaying");
+      const progressBar = document.getElementById("progressBar");
+      const currentTimeEl = document.getElementById("currentTime");
+      const durationEl = document.getElementById("duration");
+      const listMetaEl = document.getElementById("listMeta");
+      const searchInput = document.getElementById("searchInput");
+      const playPauseBtn = document.getElementById("playPauseBtn");
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const loopBtn = document.getElementById("loopBtn");
+      const addSongBtn = document.getElementById("addSongBtn");
+      const queriesBtn = document.getElementById("queriesBtn");
+      const addModal = document.getElementById("addModal");
+      const closeAddModalBtn = document.getElementById("closeAddModalBtn");
+      const saveSongBtn = document.getElementById("saveSongBtn");
+      const newSongNameInput = document.getElementById("newSongName");
+      const newSongUrlInput = document.getElementById("newSongUrl");
+      const aboutBtn = document.getElementById("aboutBtn");
+      const aboutModal = document.getElementById("aboutModal");
+      const closeAboutBtn = document.getElementById("closeAboutBtn");
+      const themeBtn = document.getElementById("themeBtn");
+      const queriesModal = document.getElementById("queriesModal");
+      const closeQueriesBtn = document.getElementById("closeQueriesBtn");
+      const sendQueryBtn = document.getElementById("sendQueryBtn");
+      const queryNameInput = document.getElementById("queryName");
+      const queryMessageInput = document.getElementById("queryMessage");
+
+      let songs = [];
+      let filteredSongs = [];
+      let currentSongIndex = -1;
+      let isPlaying = false;
+      let loopAll = false;
+
+      function getSongNameFromUrl(url) {
+        const raw = decodeURIComponent(url.split("/").pop().replace(".mp3", ""));
+        const namePart = raw.split("_").slice(0, -1).join("_") || raw;
+        return namePart
+          .replace(/[-_]/g, " ")
+          .replace(/mass?tamilan\.?(org|fm|dev|com)?/gi, "")
+          .replace(/\s+/g, " ")
+          .trim();
+      }
+
+      function formatTime(sec) {
+        if (!Number.isFinite(sec)) return "00:00";
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      }
+
+      function renderSongs() {
+        const q = searchInput.value.trim().toLowerCase();
+        filteredSongs = songs.filter((song) => {
+          if (!q) return true;
+          return song.name.toLowerCase().startsWith(q);
+        });
+
+        listMetaEl.textContent = `${filteredSongs.length} songs shown`;
+        songListEl.innerHTML = "";
+        filteredSongs.forEach((song) => {
+          const indexInMain = songs.findIndex((s) => s.id === song.id);
+          const item = document.createElement("div");
+          item.className = "song-item" + (indexInMain === currentSongIndex ? " playing" : "");
+          item.innerHTML = `
+            <div class="song-main">
+              <div class="song-title">${song.name}</div>
+              <div class="small">${song.source}</div>
+            </div>
+            <div class="song-actions">
+              <div class="small">${indexInMain + 1}</div>
+              ${
+                song.source === "Firebase"
+                  ? `<button class="delete-song-btn" data-song-id="${song.id}" title="Delete uploaded song">🗑</button>`
+                  : ""
+              }
+            </div>
+          `;
+          item.addEventListener("click", () => playSong(indexInMain));
+          const deleteBtn = item.querySelector(".delete-song-btn");
+          if (deleteBtn) {
+            deleteBtn.addEventListener("click", async (event) => {
+              event.stopPropagation();
+              await deleteUploadedSong(song.id);
+            });
+          }
+          songListEl.appendChild(item);
+        });
+      }
+
+      async function deleteUploadedSong(songId) {
+        const songToDelete = songs.find((s) => s.id === songId);
+        if (!songToDelete || songToDelete.source !== "Firebase") return;
+        const ok = confirm(`Delete "${songToDelete.name}" from uploaded songs?`);
+        if (!ok) return;
+
+        try {
+          const docId = songId.replace("firebase-", "");
+          await deleteDoc(doc(db, "songs", docId));
+
+          const removedIndex = songs.findIndex((s) => s.id === songId);
+          songs = songs.filter((s) => s.id !== songId);
+
+          if (removedIndex === currentSongIndex) {
+            audio.pause();
+            isPlaying = false;
+            currentSongIndex = -1;
+            audio.src = "";
+            playPauseBtn.textContent = "▶️ Play";
+            nowPlayingEl.textContent = "Pick a song 🎧";
+            progressBar.value = "0";
+            currentTimeEl.textContent = "00:00";
+            durationEl.textContent = "00:00";
+          } else if (removedIndex !== -1 && removedIndex < currentSongIndex) {
+            currentSongIndex -= 1;
+          }
+
+          renderSongs();
+        } catch (err) {
+          console.error("Failed to delete uploaded song", err);
+          alert("Could not delete song from Firebase.");
+        }
+      }
+
+      async function loadFirebaseSongs() {
+        try {
+          const songQuery = query(collection(db, "songs"), orderBy("createdAt", "asc"));
+          const snap = await getDocs(songQuery);
+          const customSongs = snap.docs.map((doc) => ({
+            id: `firebase-${doc.id}`,
+            name: doc.data().name || "Untitled Song",
+            url: doc.data().url || "",
+            source: "Firebase"
+          }));
+          songs = [...songs, ...customSongs.filter((s) => s.url)];
+          renderSongs();
+        } catch (err) {
+          console.error("Firebase fetch failed", err);
+        }
+      }
+
+      function playSong(index) {
+        if (index < 0 || index >= songs.length) return;
+        currentSongIndex = index;
+        const song = songs[currentSongIndex];
+        audio.src = song.url;
+        audio.play();
+        isPlaying = true;
+        nowPlayingEl.textContent = `${song.name} 🎶`;
+        playPauseBtn.textContent = "⏸ Pause";
+        renderSongs();
+      }
+
+      function togglePlayPause() {
+        if (currentSongIndex === -1 && songs.length) {
+          playSong(0);
+          return;
+        }
+        if (isPlaying) {
+          audio.pause();
+          isPlaying = false;
+          playPauseBtn.textContent = "▶️ Play";
+        } else {
+          audio.play();
+          isPlaying = true;
+          playPauseBtn.textContent = "⏸ Pause";
+        }
+      }
+
+      function nextSong() {
+        if (!songs.length) return;
+        if (currentSongIndex === -1) {
+          playSong(0);
+          return;
+        }
+        const nextIndex = (currentSongIndex + 1) % songs.length;
+        playSong(nextIndex);
+      }
+
+      function prevSong() {
+        if (!songs.length) return;
+        if (currentSongIndex === -1) {
+          playSong(0);
+          return;
+        }
+        const prevIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+        playSong(prevIndex);
+      }
+
+      async function saveSongToFirebase() {
+        const name = newSongNameInput.value.trim();
+        const url = newSongUrlInput.value.trim();
+        if (!name || !url) {
+          alert("Please enter both song name and URL.");
+          return;
+        }
+        try {
+          const docRef = await addDoc(collection(db, "songs"), {
+            name,
+            url,
+            createdAt: serverTimestamp()
+          });
+          songs.push({
+            id: `firebase-${docRef.id}`,
+            name,
+            url,
+            source: "Firebase"
+          });
+          renderSongs();
+          newSongNameInput.value = "";
+          newSongUrlInput.value = "";
+          addModal.classList.remove("open");
+        } catch (err) {
+          console.error("Failed to save song", err);
+          alert("Could not save song to Firebase. Check Firestore rules/project setup.");
+        }
+      }
+
+      function setupDefaultSongs() {
+        songs = defaultUrls.map((url, i) => ({
+          id: `default-${i}`,
+          name: getSongNameFromUrl(url) || `Track ${i + 1}`,
+          url,
+          source: "Default"
+        }));
+        renderSongs();
+      }
+
+      playPauseBtn.addEventListener("click", togglePlayPause);
+      nextBtn.addEventListener("click", nextSong);
+      prevBtn.addEventListener("click", prevSong);
+
+      loopBtn.addEventListener("click", () => {
+        loopAll = !loopAll;
+        loopBtn.classList.toggle("active", loopAll);
+        loopBtn.classList.toggle("secondary", !loopAll);
+        loopBtn.textContent = `🔁 Loop All: ${loopAll ? "On" : "Off"}`;
+      });
+
+      searchInput.addEventListener("input", renderSongs);
+      addSongBtn.addEventListener("click", () => addModal.classList.add("open"));
+      queriesBtn.addEventListener("click", () => queriesModal.classList.add("open"));
+      closeAddModalBtn.addEventListener("click", () => addModal.classList.remove("open"));
+      saveSongBtn.addEventListener("click", saveSongToFirebase);
+      aboutBtn.addEventListener("click", () => aboutModal.classList.add("open"));
+      closeAboutBtn.addEventListener("click", () => aboutModal.classList.remove("open"));
+      closeQueriesBtn.addEventListener("click", () => queriesModal.classList.remove("open"));
+      sendQueryBtn.addEventListener("click", async () => {
+        const name = queryNameInput.value.trim();
+        const message = queryMessageInput.value.trim();
+
+        if (!name || !message) {
+          alert("Please fill name and message.");
+          return;
+        }
+
+        try {
+          await addDoc(collection(db, "queries"), {
+            name,
+            message,
+            createdAt: serverTimestamp()
+          });
+          alert("Your query was sent to the creator successfully 💜");
+          queryNameInput.value = "";
+          queryMessageInput.value = "";
+          queriesModal.classList.remove("open");
+        } catch (err) {
+          console.error("Failed to save query", err);
+          alert("Could not send query to Firebase. Please try again.");
+        }
+      });
+
+      themeBtn.addEventListener("click", () => {
+        document.body.classList.toggle("dark");
+        const dark = document.body.classList.contains("dark");
+        themeBtn.textContent = dark ? "☀️ Light" : "🌙 Dark";
+      });
+
+      audio.addEventListener("timeupdate", () => {
+        if (!audio.duration) return;
+        progressBar.value = String((audio.currentTime / audio.duration) * 100);
+        currentTimeEl.textContent = formatTime(audio.currentTime);
+        durationEl.textContent = formatTime(audio.duration);
+      });
+
+      progressBar.addEventListener("input", () => {
+        if (!audio.duration) return;
+        audio.currentTime = (Number(progressBar.value) / 100) * audio.duration;
+      });
+
+      audio.addEventListener("ended", () => {
+        if (loopAll) {
+          nextSong();
+        } else {
+          isPlaying = false;
+          playPauseBtn.textContent = "▶️ Play";
+        }
+      });
+
+      setupDefaultSongs();
+      loadFirebaseSongs();
+    </script>
+  </body>
+</html>
